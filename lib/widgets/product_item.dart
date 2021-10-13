@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/models/providers/cart.dart';
 import '../models/providers/product.dart';
 import '../screens/products_detail_screen.dart';
 
@@ -10,9 +11,8 @@ class ProductItem extends StatelessWidget {
   // ProductItem(this.id, this.title, this.imageUrl);
   @override
   Widget build(BuildContext context) {
-    final product = Provider.of<Product>(
-      context,
-    );
+    final product = Provider.of<Product>(context, listen: false);
+    final cart = Provider.of<Cart>(context, listen: false);
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: GridTile(
@@ -31,14 +31,16 @@ class ProductItem extends StatelessWidget {
           //header: Text('7888'),
           footer: GridTileBar(
             backgroundColor: Colors.black87,
-            leading: IconButton(
-              icon: Icon(
-                product.isFavorites ? Icons.favorite : Icons.favorite_border,
+            leading: Consumer<Product>(
+              builder: (ctx, product, child) => IconButton(
+                icon: Icon(
+                  product.isFavorites ? Icons.favorite : Icons.favorite_border,
+                ),
+                onPressed: () {
+                  product.toggleFavoriteStatus();
+                },
+                color: Theme.of(context).accentColor,
               ),
-              onPressed: () {
-                product.toggleFavoriteStatus();
-              },
-              color: Theme.of(context).accentColor,
             ),
             title: Text(
               product.title,
@@ -46,7 +48,9 @@ class ProductItem extends StatelessWidget {
             ),
             trailing: IconButton(
               icon: Icon(Icons.shopping_cart),
-              onPressed: () {},
+              onPressed: () {
+                cart.addItem(product.id, product.price, product.title);
+              },
               color: Theme.of(context).accentColor,
             ),
           )),
