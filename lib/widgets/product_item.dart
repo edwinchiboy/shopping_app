@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:shop_app/models/providers/cart.dart';
 import '../models/providers/product.dart';
 import '../screens/products_detail_screen.dart';
+import '../models/providers/auth.dart';
 
 class ProductItem extends StatelessWidget {
   // final String id;
@@ -13,6 +14,7 @@ class ProductItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final product = Provider.of<Product>(context, listen: false);
     final cart = Provider.of<Cart>(context, listen: false);
+    final authData = Provider.of<Auth>(context, listen: false);
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: GridTile(
@@ -23,9 +25,13 @@ class ProductItem extends StatelessWidget {
                 arguments: product.id,
               );
             },
-            child: Image.network(
-              product.imageUrl,
-              fit: BoxFit.cover,
+            child: Hero(
+              tag: product.id,
+              child: FadeInImage.assetNetwork(
+                placeholder: 'lib/assets/images/product-placeholder.png', 
+                image: product.imageUrl,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           //header: Text('7888'),
@@ -37,7 +43,10 @@ class ProductItem extends StatelessWidget {
                   product.isFavorites ? Icons.favorite : Icons.favorite_border,
                 ),
                 onPressed: () {
-                  product.toggleFavoriteStatus();
+                  product.toggleFavoriteStatus(
+                    authData.token,
+                    authData.userId,
+                  );
                 },
                 color: Theme.of(context).accentColor,
               ),
@@ -50,6 +59,21 @@ class ProductItem extends StatelessWidget {
               icon: Icon(Icons.shopping_cart),
               onPressed: () {
                 cart.addItem(product.id, product.price, product.title);
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  new SnackBar(
+                    content: Text(
+                      'Add item to cart',
+                    ),
+                    duration: Duration(seconds: 2),
+                    action: SnackBarAction(
+                      label: 'UNDO',
+                      onPressed: () {
+                        cart.removeSingleItem(product.id);
+                      },
+                    ),
+                  ),
+                );
               },
               color: Theme.of(context).accentColor,
             ),
